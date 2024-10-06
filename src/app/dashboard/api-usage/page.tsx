@@ -33,21 +33,21 @@ export default function Page() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <h3 className="mb-2 text-lg font-semibold">Get Personal Information</h3>
+            <h3 className="mb-2 text-base font-semibold">Get Personal Information</h3>
             <div className="flex items-center justify-between rounded-md bg-accent p-3">
               <code>https://api.yourwebsite.com/v1/personal-info</code>
               <CopyButton text="https://api.yourwebsite.com/v1/personal-info" />
             </div>
           </div>
           <div>
-            <h3 className="mb-2 text-lg font-semibold">Get Portfolio Items</h3>
+            <h3 className="mb-2 text-base font-semibold">Get Portfolio Items</h3>
             <div className="flex items-center justify-between rounded-md bg-accent p-3">
               <code>https://api.yourwebsite.com/v1/portfolio</code>
               <CopyButton text="https://api.yourwebsite.com/v1/portfolio" />
             </div>
           </div>
           <div>
-            <h3 className="mb-2 text-lg font-semibold">Get Blog Posts</h3>
+            <h3 className="mb-2 text-base font-semibold">Get Blog Posts</h3>
             <div className="flex items-center justify-between rounded-md bg-accent p-3">
               <code>https://api.yourwebsite.com/v1/blog-posts</code>
               <CopyButton text="https://api.yourwebsite.com/v1/blog-posts" />

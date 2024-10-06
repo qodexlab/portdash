@@ -1,16 +1,12 @@
 "use client";
 
-import { useState } from "react";
-
 import { Header } from "@/components/common/header";
 import { Sidebar } from "@/components/common/sidebar";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+import { useSidebarCollapse } from "@/hooks/useSidebarCollapse";
 
-  const toggleSidebar = () => {
-    setIsSidebarCollapsed(!isSidebarCollapsed);
-  };
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { isSidebarCollapsed, toggleSidebar } = useSidebarCollapse();
 
   return (
     <div className="flex h-screen flex-col bg-stone-50 dark:bg-stone-900">

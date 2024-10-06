@@ -20,13 +20,15 @@ import {
 import { useTheme } from "next-themes";
 import { useState } from "react";
 
+import { capitalizeWords } from "@/utils/capitalization";
+
 export default function Page() {
-  const { setTheme } = useTheme();
+  const { setTheme, themes, theme } = useTheme();
 
   const [settings, setSettings] = useState({
     email: "john.doe@example.com",
     password: "",
-    theme: "light",
+    theme: theme ?? "system",
     language: "en",
     notifications: "enabled",
     privacy: "public",
@@ -86,9 +88,9 @@ export default function Page() {
                 <SelectValue placeholder="Select a theme" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="light">Light</SelectItem>
-                <SelectItem value="dark">Dark</SelectItem>
-                <SelectItem value="system">System</SelectItem>
+                {themes.map((theme) => (
+                  <SelectItem value={theme}>{capitalizeWords(theme)}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

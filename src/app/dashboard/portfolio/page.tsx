@@ -1,93 +1,136 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
+import { Search } from "lucide-react";
 
-export default function Page() {
-  const [portfolioItems, setPortfolioItems] = useState<
-    { id: number; title: string; description: string; image: string }[]
-  >([
-    { id: 1, title: "Project 1", description: "A cool web app", image: "" },
-    { id: 2, title: "Project 2", description: "An awesome mobile app", image: "" },
-  ]);
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import Pagination from "./components/pagination";
+import AddProjectDialog from "./components/add-project-dialog";
+import EditProjectDialog from "./components/edit-project-dialog";
+import ProjectCard from "./components/project-card";
 
-  const handlePortfolioChange = (id: number, field: string, value: string) => {
-    setPortfolioItems(
-      portfolioItems.map((item) => (item.id === id ? { ...item, [field]: value } : item)),
+import { PortfolioItem } from "@/types";
+
+export default function PortfolioManager() {
+  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>(initialPortfolioItems());
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [editingProject, setEditingProject] = useState<PortfolioItem | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const itemsPerPage = 6;
+  const filteredItems = portfolioItems.filter(
+    (item) =>
+      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.tools.some((tool: string) => tool.toLowerCase().includes(searchTerm.toLowerCase())),
+  );
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage) || 1;
+  const paginatedItems = filteredItems.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
+
+  const addNewProject = (newProject: PortfolioItem) => {
+    const newId = Math.max(...portfolioItems.map((item) => item.id), 0) + 1;
+    setPortfolioItems([...portfolioItems, { ...newProject, id: newId }]);
+  };
+
+  const deleteProject = (id: number) => {
+    setPortfolioItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const handleSaveChanges = (updatedProject: PortfolioItem) => {
+    setPortfolioItems((prev) =>
+      prev.map((item) => (item.id === updatedProject.id ? updatedProject : item)),
     );
-  };
-
-  const handleImageChange = (id: number, file: File) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPortfolioItems(
-        portfolioItems.map((item) =>
-          item.id === id ? { ...item, image: reader.result as string } : item,
-        ),
-      );
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const addPortfolioItem = () => {
-    const newId = Math.max(...portfolioItems.map((item: { id: any }) => item.id), 0) + 1;
-    setPortfolioItems([...portfolioItems, { id: newId, title: "", description: "", image: "" }]);
-  };
-
-  const deletePortfolioItem = (id: number) => {
-    setPortfolioItems(portfolioItems.filter((item) => item.id !== id));
+    setIsEditDialogOpen(false);
   };
 
   return (
-    <div>
+    <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Portfolio Items</CardTitle>
-          <CardDescription>Manage your portfolio projects here.</CardDescription>
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+            <div>
+              <CardTitle className="text-2xl">Portfolio Manager</CardTitle>
+            </div>
+            <AddProjectDialog addNewProject={addNewProject} />
+          </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {portfolioItems.map(
-            (item: { id: number; title: string; description: string; image: string }) => (
-              <div key={item.id} className="space-y-2 border-b pb-4">
-                <Input
-                  placeholder="Project Title"
-                  value={item.title}
-                  onChange={(e) => handlePortfolioChange(item.id, "title", e.target.value)}
-                />
-                <Textarea
-                  placeholder="Project Description"
-                  value={item.description}
-                  onChange={(e) => handlePortfolioChange(item.id, "description", e.target.value)}
-                />
-                <Input
-                  type="file"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      handleImageChange(item.id, e.target.files[0]);
-                    }
-                  }}
-                />
-                {item.image && <img src={item.image} alt={item.title} className="mt-2 max-w-xs" />}
-                <Button onClick={() => deletePortfolioItem(item.id)}>Delete</Button>
-              </div>
-            ),
-          )}
-          <Button onClick={addPortfolioItem}>Add New Project</Button>
+
+        <CardContent>
+          <div className="relative mb-6 flex items-center">
+            <Search className="absolute left-3 h-5 w-5 text-gray-500" />
+            <Input
+              placeholder="Search projects..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-grow pl-10"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+            {paginatedItems.map((item) => (
+              <ProjectCard
+                key={item.id}
+                project={item}
+                openEditDialog={() => {
+                  setEditingProject(item);
+                  setIsEditDialogOpen(true);
+                }}
+                deleteProject={deleteProject}
+              />
+            ))}
+          </div>
+
+          <div className="mt-6">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
         </CardContent>
+
         <CardFooter>
-          <Button>Save Changes</Button>
+          <Button onClick={() => alert("Changes saved successfully!")}>Save Changes</Button>
         </CardFooter>
       </Card>
+
+      {editingProject && (
+        <EditProjectDialog
+          project={editingProject}
+          isOpen={isEditDialogOpen}
+          onClose={() => setIsEditDialogOpen(false)}
+          onSave={handleSaveChanges}
+        />
+      )}
     </div>
   );
+}
+
+function initialPortfolioItems(): PortfolioItem[] {
+  return [
+    {
+      id: 1,
+      title: "Project 1",
+      description: "A cool web app with amazing features and cutting-edge technology.",
+      image: "",
+      tools: ["React", "Node.js", "MongoDB"],
+      demoLink: "https://demo1.com",
+      srcLink: "https://github.com/project1",
+    },
+    {
+      id: 2,
+      title: "Project 2",
+      description: "An awesome mobile app that revolutionizes user experience.",
+      image: "",
+      tools: ["React Native", "Firebase"],
+      demoLink: "https://demo2.com",
+      srcLink: "https://github.com/project2",
+    },
+  ];
 }
